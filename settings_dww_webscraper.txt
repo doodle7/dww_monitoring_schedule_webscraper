@@ -1,16 +1,10 @@
 This document is for use with the dww_webscraper made by SMahoney.
 It gives necessary information to the application during runtime.
 
-hyperlink_csv_path=C:\Users\seanm\OneDrive\agra\dww_project\dww_hyperlinks3.csv
-pickled_html_dict_path=C:\Users\\seanm\OneDrive\agra\dww_project\
-pickled_html_dict_path_old=C:\Users\seanm\OneDrive\agra\dww_project\dww_queries 2022-08-03 21 02 01.txt
-pickled_html_dict_path_new=C:\Users\seanm\OneDrive\agra\dww_project\dww_queries 2022-08-04 09 22 21.txt
-saved_html_differences_path=C:\Users\seanm\dww_webscraper\dww_changes
+hyperlink_csv_path=dww_hyperlinks_short.csv
+pickled_html_dict_path=dww_pickles\
+pickled_html_dict_path_old=dww_pickles\dww_queries 2022-08-03 21 02 01.txt
+pickled_html_dict_path_new=dww_pickles\dww_queries 2022-08-04 09 22 21.txt
+saved_html_differences_path=dww_changes
 save_differences=True
-query_dww=True
-
-
-
-
-
-Made by Sean Mahoney
+query_dww=False

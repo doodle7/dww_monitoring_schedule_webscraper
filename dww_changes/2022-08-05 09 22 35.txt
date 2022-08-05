@@ -1,0 +1,21 @@
+       Sampling Year
+new 1         2021.0
+old 1         2024.0https://www9.state.nj.us/DEP_WaterWatch_public/JSP/Scheds.jsp?tinwsys=8387&active1=A
+
+
+################       Sampling Year
+new 6            NaN
+old 6         2022.0https://www9.state.nj.us/DEP_WaterWatch_public/JSP/Scheds.jsp?tinwsys=4548&active1=A
+
+
+################                3
+new 3          GW
+old 3  GW / DAYCChttps://www9.state.nj.us/DEP_WaterWatch_public/JSP/Scheds.jsp?tinwsys=7066&active1=A
+
+
+################                                        1
+new 2                                 NaN
+old 2  230 REEDER RD Harmony Twp NJ 08865https://www9.state.nj.us/DEP_WaterWatch_public/JSP/Scheds.jsp?tinwsys=8524&active1=A
+
+
+################2813 tables were identical4 tables were different

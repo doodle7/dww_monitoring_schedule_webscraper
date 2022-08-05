@@ -13,11 +13,12 @@ import fsspec
 import sys , os
 import traceback
 import requests
+import lxml
 
 def override_where():
     """ overrides certifi.core.where to return actual location of cacert.pem"""
     # change this to match the location of cacert.pem
-    return os.path.abspath("C:\\Users\\seanm\\.conda\\envs\\mplleaflet\\Lib\\site-packages\\certifi\\cacert.pem")
+    return os.path.abspath(os.getcwd() + "/cacert.pem")
 
 def get_monitoring_schedule(hyperlink):
     session = requests.Session()
@@ -101,7 +102,7 @@ def compare_dww(html_list_old,html_list_new,diff_dest,save_differences):
     print(different)
     table_differences.append(str(different) + ' tables were different')
     if bool(save_differences):
-        with open(diff_dest + "\\" + str(datetime.datetime.now())[:-7].replace(':',' ') + '.txt', 'w+') as f:
+        with open(diff_dest + "\\" + str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt', 'w+') as f:
             f.writelines(table_differences)
 
 #is the program compiled?
@@ -139,12 +140,12 @@ except:
 
 #### Query Drinking water watch and pickle results
 print(settings_dict)
+html_list_new_path = settings_dict['pickled_html_dict_path'] +'dww_queries_'+str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt'
 if settings_dict['query_dww'].lower() == "true":
     try:
         hyperlink_df = pd.read_csv(settings_dict['hyperlink_csv_path'])
         print("Loading...")
         html_list_new = map(get_monitoring_schedule,hyperlink_df.hyperlink)
-        html_list_new_path = settings_dict['pickled_html_dict_path'] +str(datetime.datetime.now())[:-7].replace(':',' ') + '.txt'
         with open(html_list_new_path, "wb") as f:
             pickle.dump(list(html_list_new),f)
         print("All hyperlinkes have been webscraped!! \nPickle has been saved!")
@@ -158,10 +159,12 @@ with open(settings_dict['pickled_html_dict_path_old'], 'rb') as f:
     html_list_old = pickle.load(f)
 try:
     html_list_new
+    with open(html_list_new_path, 'rb') as f:
+        html_list_new = pickle.load(f)
 except NameError:
     with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
         html_list_new = pickle.load(f)
 
-
+print(html_list_new,html_list_old,)
 compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
 r = input("Tell me when to stop")

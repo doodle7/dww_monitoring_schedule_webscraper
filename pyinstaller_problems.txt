@@ -2,7 +2,7 @@ making pyinstaller work:
 
 Error 1:
 first got an error saying fsspec pandas optional dependency was not loaded into the exe.  I added it as an import statement in the .py file,
-then I also added it as a flag in comandline keyword argument --hidden-input=fsspec
+then I also added it as a flag in comandline keyword argument --hidden-import=fsspec
 
 
 
@@ -29,3 +29,6 @@ if hasattr(sys, "frozen"):
     # imported before we replaced certifi.core.where
     requests.utils.DEFAULT_CA_BUNDLE_PATH = override_where()
     requests.adapters.DEFAULT_CA_BUNDLE_PATH = override_where()
+
+Error 3:
+ImportError:lxml not found, please install it.  on line pd.read_html(html)

@@ -1,0 +1,6 @@
+                                      1
+new 2                               NaN
+old 2  3 GOLD MINE RD Flanders NJ 07836https://www9.state.nj.us/DEP_WaterWatch_public/JSP/Scheds.jsp?tinwsys=4462&active1=A
+
+
+################194 tables were identical1 tables were different
