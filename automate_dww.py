@@ -13,7 +13,8 @@ import fsspec
 import sys , os
 import traceback
 import requests
-import lxml
+import bs4
+import html5lib
 
 def override_where():
     """ overrides certifi.core.where to return actual location of cacert.pem"""
@@ -125,46 +126,50 @@ if hasattr(sys, "frozen"):
     
     
 ###########Program######################
-    
-k = input("Press enter to start")        
-###Load defaults from corresponding text file
-encoding = 'utf8'
 try:
-    with open('settings_dww_webscraper.txt' , 'r' ,encoding=encoding) as f:
-        lines = f.readlines()
-        settings_dict = get_settings(lines)
-except:
-    print('File "settings_dww_webscraper.txt" Does not exist')
-    input("Press enter to exit")
-    sys.exit(1)
-
-#### Query Drinking water watch and pickle results
-print(settings_dict)
-html_list_new_path = settings_dict['pickled_html_dict_path'] +'dww_queries_'+str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt'
-if settings_dict['query_dww'].lower() == "true":
+    k = input("Press enter to start")        
+    ###Load defaults from corresponding text file
+    encoding = 'utf8'
     try:
-        hyperlink_df = pd.read_csv(settings_dict['hyperlink_csv_path'])
-        print("Loading...")
-        html_list_new = map(get_monitoring_schedule,hyperlink_df.hyperlink)
-        with open(html_list_new_path, "wb") as f:
-            pickle.dump(list(html_list_new),f)
-        print("All hyperlinkes have been webscraped!! \nPickle has been saved!")
+        with open('settings_dww_webscraper.txt' , 'r' ,encoding=encoding) as f:
+            lines = f.readlines()
+            settings_dict = get_settings(lines)
     except:
-        print(traceback.format_exc())
-        
-        
-#### Compare table differences
-print("Now entering html comparison mode")
-with open(settings_dict['pickled_html_dict_path_old'], 'rb') as f:
-    html_list_old = pickle.load(f)
-try:
-    html_list_new
-    with open(html_list_new_path, 'rb') as f:
-        html_list_new = pickle.load(f)
-except NameError:
-    with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
-        html_list_new = pickle.load(f)
-
-print(html_list_new,html_list_old,)
-compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
-r = input("Tell me when to stop")
+        print('File "settings_dww_webscraper.txt" Does not exist')
+        input("Press enter to exit")
+        sys.exit(1)
+    
+    #### Query Drinking water watch and pickle results
+    print(settings_dict)
+    html_list_new_path = settings_dict['pickled_html_dict_path'] +'dww_queries_'+str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt'
+    if settings_dict['query_dww'].lower() == "true":
+        try:
+            hyperlink_df = pd.read_csv(settings_dict['hyperlink_csv_path'])
+            print("Loading...")
+            html_list_new = map(get_monitoring_schedule,hyperlink_df.hyperlink)
+            with open(html_list_new_path, "wb") as f:
+                pickle.dump(list(html_list_new),f)
+            print("All hyperlinkes have been webscraped!! \nPickle has been saved!")
+        except:
+            print(traceback.format_exc())
+            
+            
+    #### Compare table differences
+    print("Now entering html comparison mode")
+    with open(settings_dict['pickled_html_dict_path_old'], 'rb') as f:
+        html_list_old = pickle.load(f)
+    try:
+        html_list_new
+        with open(html_list_new_path, 'rb') as f:
+            html_list_new = pickle.load(f)
+    except NameError:
+        with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
+            html_list_new = pickle.load(f)
+    
+    print(html_list_new,html_list_old,)
+    compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
+    r = input("Tell me when to stop")
+except BaseException as err:
+    print("There was an error!!!")
+    print(traceback.format_exc())
+    n = input("Press enter to close")

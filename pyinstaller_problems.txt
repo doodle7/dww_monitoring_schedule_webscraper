@@ -32,3 +32,4 @@ if hasattr(sys, "frozen"):
 
 Error 3:
 ImportError:lxml not found, please install it.  on line pd.read_html(html)
+Resolved by adding --collect-submodules=lxml
