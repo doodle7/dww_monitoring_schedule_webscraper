@@ -1,3 +1,5 @@
 
 build
 dist
+settings_dww_webscraper.txt
+__pycache__\*
