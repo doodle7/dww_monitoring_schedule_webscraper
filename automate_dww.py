@@ -57,7 +57,7 @@ def compare_dww(html_list_old,html_list_new,diff_dest,save_differences):
         if html_dict_old[url].url == html_dict_new[url].url:
             a_df = pd.read_html(html_dict_old[url].text)
             b_df = pd.read_html(html_dict_new[url].text)
-            
+            temp_table = [a_df[1].iloc[1,1] , url]
             ###Break up HTML into tables
             for table_a , table_b in zip(a_df,b_df):
                 
@@ -85,15 +85,16 @@ def compare_dww(html_list_old,html_list_new,diff_dest,save_differences):
                     different += 1
                     comparison = table_a.compare(table_b, align_axis=0)
                     comparison_str = str(comparison.rename(index={'self':'old','other':'new'}).swaplevel().sort_index())
-                    table_differences.append(comparison_str)
-                    print(comparison_str)
+                    temp_table.append(comparison_str)
+
                 except IndexError:
                     pass
                 except BaseException:
                     print(traceback.format_exc())
             if print_url:
-                table_differences.append(url + '\n\n\n################')
-                print(url + '\n\n\n################')
+                temp_table.append('\n\n\n################')
+                table_differences.extend(temp_table)
+                [print(x) for x in temp_table]
         else:
             print("\n\n\n\n URLs not equal!! \n\n\n\n")
             print(url)
@@ -129,9 +130,8 @@ if hasattr(sys, "frozen"):
 try:
     k = input("Press enter to start")        
     ###Load defaults from corresponding text file
-    encoding = 'utf8'
     try:
-        with open('settings_dww_webscraper.txt' , 'r' ,encoding=encoding) as f:
+        with open('settings_dww_webscraper.txt' , 'r' ) as f:
             lines = f.readlines()
             settings_dict = get_settings(lines)
     except:
@@ -166,10 +166,10 @@ try:
         with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
             html_list_new = pickle.load(f)
     
-    print(html_list_new,html_list_old,)
+    print(html_list_new,html_list_old)
     compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
     r = input("Tell me when to stop")
-except BaseException as err:
+except BaseException:
     print("There was an error!!!")
     print(traceback.format_exc())
     n = input("Press enter to close")
