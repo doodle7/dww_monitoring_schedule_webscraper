@@ -28,20 +28,22 @@ async def main():
     return
     
 async def get_monitoring_schedule(hyperlink):
-    async with httpx.AsyncClient(event_hooks=({'request':[log_request],'response':[log_response]}),cookies = o.cookies) as client:
-        r = await client.post(hyperlink,follow_redirects=True)
-        while "You tried to reach a WaterWatch page directly from a bookmark (rather than starting from the main search page)" in r.text:
-            r = client.post(hyperlink)
-        results.append(r)
-        return
+    async with httpx.AsyncClient(event_hooks=({'request':[log_request],'response':[log_response]})) as client:
+        await client.get('https://www9.state.nj.us/DEP_WaterWatch_public/index.jsp')
+        r = await client.post(hyperlink,timeout=10)
+    while "You tried to reach a WaterWatch page directly from a bookmark (rather than starting from the main search page)" \
+        in r.text and r.status_code != 200:
+        await client.get('https://www9.state.nj.us/DEP_WaterWatch_public/index.jsp')
+        r = await client.post(hyperlink,timeout=10)
+    results.append(r)
+    return
 
 k = time.perf_counter()
 hyperlink_df = pd.read_csv("C://Users//seanm//OneDrive//agra//dww_project//dww_hyperlinks3.csv",encoding_errors='ignore')
-o = httpx.get('https://www9.state.nj.us/DEP_WaterWatch_public/')
-r = httpx.post(hyperlink_df.hyperlink[0],cookies=o.cookies)
 results = []
 asyncio.create_task(main())
-print(o.cookies)
+#print(r)
+#print("You tried to reach a WaterWatch page directly from a bookmark (rather than starting from the main search page)" in r.text)
 print(time.perf_counter() - k )
 #print(results[0])
 

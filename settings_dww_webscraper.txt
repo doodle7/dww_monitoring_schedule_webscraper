@@ -6,5 +6,5 @@ pickled_html_dict_path=dww_pickles\
 pickled_html_dict_path_old=dww_pickles\dww_queries 2022-08-03 21 02 01.txt
 pickled_html_dict_path_new=dww_pickles\dww_queries 2022-08-04 09 22 21.txt
 saved_html_differences_path=dww_changes
-save_differences=True
-query_dww=False
+save_differences=False
+query_dww=True
