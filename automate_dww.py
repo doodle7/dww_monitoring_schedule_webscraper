@@ -5,37 +5,62 @@ Created on Tue Aug  2 12:40:13 2022
 @author: seanm
 """
 
-from concurrent.futures import ThreadPoolExecutor , ProcessPoolExecutor
 import pandas as pd
+import sys
 import pickle
 import datetime
-import fsspec
-import sys , os
 import traceback
 import requests
-import bs4
-import html5lib
 
-def override_where():
-    """ overrides certifi.core.where to return actual location of cacert.pem"""
-    # change this to match the location of cacert.pem
-    return os.path.abspath(os.getcwd() + "/cacert.pem")
 
-def get_monitoring_schedule(hyperlink):
+def get_dww_endpoint(hyperlink):
+    '''
+    Parameters
+    ----------
+    hyperlink : full url to dww endpoint
+
+    Description
+    -----------
+    1. starts a valid session by going to dww main page, 
+    2. then goes to the provided main page 
+    3. repeats 1 and 2 if there is an error
+    
+    Returns
+    -------
+    current_html : html of the dww endpoint sought after
+
+    '''
+    err_msg = '''You tried to reach a WaterWatch page directly from a bookmark 
+        (rather than starting from the main search page)'''
+    main_dep_page = "'https://www9.state.nj.us/DEP_WaterWatch_public/'"
     session = requests.Session()
-    session.get('https://www9.state.nj.us/DEP_WaterWatch_public/')
+    session.get(main_dep_page)
     print(hyperlink + " loaded")
     try: 
-        current_html = session.post(hyperlink)
-        while ("You tried to reach a WaterWatch page directly from a bookmark (rather than starting from the main search page)" in current_html.text):
+        current_html = session.get(hyperlink)
+        while (err_msg in current_html.text):
             session = requests.Session()
-            session.get('https://www9.state.nj.us/DEP_WaterWatch_public/')   
-            current_html = session.post(hyperlink)
+            session.get(main_dep_page)   
+            current_html = session.get(hyperlink)
         return current_html
     except BaseException as err:
         print(type(err),err)
         
 def get_settings(lines):
+    '''
+    Parameters
+    ----------
+    lines : list(strings) eg. save_differences=True
+        
+    Description
+    -----------
+    converts each line into a key,value pair for the settings dict
+
+    Returns
+    -------
+    settings_dict : dict(setting_name:user_value)
+
+    '''
     settings_dict = {}
     for line in lines:
         if '=' in line:
@@ -43,6 +68,30 @@ def get_settings(lines):
     return settings_dict
 
 def compare_dww(html_list_old,html_list_new,diff_dest,save_differences):
+    '''
+    
+
+    Parameters
+    ----------
+    html_list_old : list(html_pages)
+    html_list_new : list(html_pages)
+    diff_dest : url to save computed differences between html_list_old
+        and html_list_new
+    save_differences : boolean 
+    
+    Description
+    -----------
+    Pulls table tags from each html page, and saves them to a pandas df
+    goes table by table in each html page, making sure no rows have
+    been altered, rearranged rows are fine.  If any rows have been altered it    
+    prints differences to console and saves them to simple text file if 
+    save_differences: True
+    
+    Returns
+    -------
+    None.
+
+    '''
     import traceback
 
 
@@ -106,70 +155,51 @@ def compare_dww(html_list_old,html_list_new,diff_dest,save_differences):
     if bool(save_differences):
         with open(diff_dest + "\\" + str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt', 'w+') as f:
             f.writelines(table_differences)
-
-#is the program compiled?
-
-if hasattr(sys, "frozen"):
-    import certifi.core
-
-    os.environ["REQUESTS_CA_BUNDLE"] = override_where()
-    certifi.core.where = override_where
-
-    # delay importing until after where() has been replaced
-    import requests.utils
-    import requests.adapters
-    # replace these variables in case these modules were
-    # imported before we replaced certifi.core.where
-    requests.utils.DEFAULT_CA_BUNDLE_PATH = override_where()
-    requests.adapters.DEFAULT_CA_BUNDLE_PATH = override_where()
-    
-    
-    
     
 ###########Program######################
-try:
-    k = input("Press enter to start")        
-    ###Load defaults from corresponding text file
+if __name__ =='__main__':
     try:
-        with open('settings_dww_webscraper.txt' , 'r' ) as f:
-            lines = f.readlines()
-            settings_dict = get_settings(lines)
-    except:
-        print('File "settings_dww_webscraper.txt" Does not exist')
-        input("Press enter to exit")
-        sys.exit(1)
-    
-    #### Query Drinking water watch and pickle results
-    print(settings_dict)
-    html_list_new_path = settings_dict['pickled_html_dict_path'] +'dww_queries_'+str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt'
-    if settings_dict['query_dww'].lower() == "true":
+        ###Load defaults from corresponding text file
         try:
-            hyperlink_df = pd.read_csv(settings_dict['hyperlink_csv_path'])
-            print("Loading...")
-            html_list_new = map(get_monitoring_schedule,hyperlink_df.hyperlink)
-            with open(html_list_new_path, "wb") as f:
-                pickle.dump(list(html_list_new),f)
-            print("All hyperlinkes have been webscraped!! \nPickle has been saved!")
+            with open('settings_dww_webscraper.txt' , 'r' ) as f:
+                lines = f.readlines()
+                settings_dict = get_settings(lines)
         except:
-            print(traceback.format_exc())
-            
-            
-    #### Compare table differences
-    print("Now entering html comparison mode")
-    with open(settings_dict['pickled_html_dict_path_old'], 'rb') as f:
-        html_list_old = pickle.load(f)
-    try:
-        html_list_new
-        with open(html_list_new_path, 'rb') as f:
-            html_list_new = pickle.load(f)
-    except NameError:
-        with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
-            html_list_new = pickle.load(f)
-    
-    print(html_list_new,html_list_old)
-    compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
-    r = input("Tell me when to stop")
-except BaseException:
-    print("There was an error!!!")
-    print(traceback.format_exc())
-    n = input("Press enter to close")
+            print('File "settings_dww_webscraper.txt" Does not exist')
+            input("Press enter to exit")
+            sys.exit(1)
+        
+        #### Query Drinking water watch and pickle results
+        print(settings_dict)
+        html_list_new_path = settings_dict['pickled_html_dict_path'] +'dww_queries_'+str(datetime.datetime.now())[:-10].replace(':',' ') + '.txt'
+        if settings_dict['query_dww'].lower() == "true":
+            try:
+                hyperlink_df = pd.read_csv(settings_dict['hyperlink_csv_path'])
+                print("Loading...")
+                html_list_new = map(get_dww_endpoint,hyperlink_df.hyperlink)
+                with open(html_list_new_path, "wb") as f:
+                    pickle.dump(list(html_list_new),f)
+                print("All hyperlinkes have been webscraped!! \nPickle has been saved!")
+            except:
+                print(traceback.format_exc())
+                
+                
+        #### Compare table differences
+        print("Now entering html comparison mode")
+        with open(settings_dict['pickled_html_dict_path_old'], 'rb') as f:
+            html_list_old = pickle.load(f)
+        try:
+            html_list_new
+            with open(html_list_new_path, 'rb') as f:
+                html_list_new = pickle.load(f)
+        except NameError:
+            with open(settings_dict['pickled_html_dict_path_new'] , 'rb') as f:
+                html_list_new = pickle.load(f)
+        
+        print(html_list_new,html_list_old)
+        compare_dww(html_list_old,html_list_new, settings_dict['saved_html_differences_path'],settings_dict['save_differences'])
+        r = input("Tell me when to stop")
+    except BaseException:
+        print("There was an error!!!")
+        print(traceback.format_exc())
+        n = input("Press enter to close")
